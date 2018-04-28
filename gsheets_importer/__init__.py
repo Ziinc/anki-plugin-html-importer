@@ -150,21 +150,28 @@ def updated_oldest_card_and_remove_new_duplicates():
             # newest note added, that was modified in google docs
             newest_mod_note = sorted_newest_modified_first[0]
 
+            # Finds the new deck id associated with cards from the newest notes added.
+            # Find cards of the old note id assigned to the old deck id, and update these cards with the new deck id
+            (new_did,) = mw.col.db.execute("""
+                SELECT did 
+                FROM cards 
+                WHERE nid= ?
+                LIMIT 1
+            """, newest_mod_note['id']).fetchone()
+            (old_did,) = mw.col.db.execute("""
+                SELECT did 
+                FROM cards 
+                WHERE nid= ?
+                LIMIT 1
+            """, oldest_note['id']).fetchone()
+            mw.col.db.execute("""
+                UPDATE cards 
+                SET did=?, usn=?
+                WHERE nid= ? AND did=?
+            """, new_did, mw.col.usn(), oldest_note['id'], old_did)
+
             # update data associated with the oldest note to the new data from the newest modified note
             if oldest_note['flds'] != newest_mod_note['flds']:
-                # Finds the new deck id associated with cards from the newest notes added.
-                # Find cards of the old note id assigned to the old deck id, and update these cards with the new deck id
-                (new_did,) = mw.col.db.execute("""
-                    SELECT did 
-                    FROM cards 
-                    WHERE nid= ?
-                    LIMIT 1
-                """, newest_mod_note['id']).fetchone()
-                mw.col.db.execute("""
-                    UPDATE cards 
-                    SET did=? 
-                    WHERE nid= ?
-                """, new_did, oldest_note['id'])
 
                 # check if the oldest note has a sound tag in it
                 search = pattern.search(oldest_note['flds'])
@@ -194,7 +201,6 @@ def updated_oldest_card_and_remove_new_duplicates():
                     ls = []
                     ls.append(id)
                     mw.col.remNotes(ls)
-                    delete_cnt += 1
                 else:
                     continue
     mw.col.setMod()
@@ -202,7 +208,7 @@ def updated_oldest_card_and_remove_new_duplicates():
     mw.col.reset()
     mw.reset()
     delete_log += str(delete_cnt) + \
-        " duplicate cards has been deleted" + "\n\n"
+        " cards has been deleted" + "\n\n"
     return delete_log
 
 
