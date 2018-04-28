@@ -141,27 +141,42 @@ def updated_oldest_card_and_remove_new_duplicates():
             # Find oldest note
             sorted_oldest_first = sorted(
                 unsorted_list, key=lambda d: d['id'], reverse=False)
+            # oldest note found, with review history
             oldest_note = sorted_oldest_first[0]
-            # Find the newest modified card
+
+            # Find the newest modified note
             sorted_newest_modified_first = sorted(
                 unsorted_list, key=lambda d: d['id'], reverse=True)
+            # newest note added, that was modified in google docs
             newest_mod_note = sorted_newest_modified_first[0]
 
-            t = oldest_note['flds']
-            n = newest_mod_note['flds']
-
-            if t != n:
+            # update data associated with the oldest note to the new data from the newest modified note
+            if oldest_note['flds'] != newest_mod_note['flds']:
+                # Finds the new deck id associated with cards from the newest notes added.
+                # Find cards of the old note id assigned to the old deck id, and update these cards with the new deck id
+                (new_did,) = mw.col.db.execute("""
+                    SELECT did 
+                    FROM cards 
+                    WHERE nid= ?
+                    LIMIT 1
+                """, newest_mod_note['id']).fetchone()
+                mw.col.db.execute("""
+                    UPDATE cards 
+                    SET did=? 
+                    WHERE nid= ?
+                """, new_did, oldest_note['id'])
 
                 # check if the oldest note has a sound tag in it
-                search = pattern.search(t)
+                search = pattern.search(oldest_note['flds'])
                 if search:
                     sound_tag = search.group(0)
-                    sep_pos = t.find("\x1f")
-                    tag_pos = t.find(sound_tag)
+                    sep_pos = oldest_note['flds'].find("\x1f")
+                    tag_pos = oldest_note['flds'].find(sound_tag)
 
                     if tag_pos > sep_pos:
                         # runs if tag is on back of card, append to back
-                        newest_mod_note['flds'] = n + "\n" + sound_tag
+                        newest_mod_note['flds'] = newest_mod_note['flds'] + \
+                            "\n" + sound_tag
 
                 # assign values to be updated
                 new_flds = newest_mod_note['flds']
@@ -171,7 +186,7 @@ def updated_oldest_card_and_remove_new_duplicates():
                 mw.col.db.execute(
                     "update notes set flds=?,mod=?, usn=? where id=?", new_flds, new_mod, new_usn, old_id)
 
-            # Delete notes
+            # Delete all notes except for the oldest note
             for id in nidlist:
                 if id != oldest_note['id']:
                     # mw.col.db.execute("delete from notes where id=?",id)
