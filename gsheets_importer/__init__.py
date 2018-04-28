@@ -12,15 +12,11 @@ from aqt.utils import showText
 from anki.importing import TextImporter
 from anki.media import MediaManager
 import tempfile
-from datetime import datetime
-import time
 import urlparse
 import string
 
 
 import re
-
-import hashlib
 
 from ClaSS2Style import ClaSS2Style
 
