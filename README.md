@@ -38,6 +38,12 @@ To install a new dependency:
 pip install -t vendor my_addon_name
 ```
 
+To install all dependencies:
+
+```
+pip install -t vendor -r requirements.txt
+```
+
 To upgrade a dependency:
 
 ```
