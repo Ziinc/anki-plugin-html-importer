@@ -1,8 +1,3 @@
-import sys
-import os.path
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
 import threading
 try:
     import cStringIO as StringIO
@@ -15,15 +10,13 @@ import os
 import re
 import urllib2
 import urlparse
-# from aqt.utils import showText
+
 import time
 
 import cssutils
 from lxml import etree
 from lxml.cssselect import CSSSelector
 
-import logging
-cssutils.log.setLevel(logging.CRITICAL)
 
 __all__ = ['ClaSS2Style']
 
@@ -135,42 +128,22 @@ class ClaSS2Style(object):
         sheet = cssutils.parseString(css_body, validate=not self.disable_validation)
         for rule in sheet:
             # ignore comments, font-face, media and unknown rules
-            # 
-            if rule.type in (rule.COMMENT, rule.FONT_FACE_RULE, rule.UNKNOWN_RULE,  rule.MEDIA_RULE):
+            if rule.type in (rule.COMMENT, rule.UNKNOWN_RULE, rule.FONT_FACE_RULE, rule.MEDIA_RULE):
                 continue
-            if hasattr(rule, 'style'):
-                bulk = ';'.join(
-                    u'{0}:{1}'.format(key, rule.style[key])
-                    for key in rule.style.keys()
-                )
-                selectors = (
-                    x.strip()
-                    for x in rule.selectorText.split(',')
-                    if x.strip() and (x.strip().find("lst") < 0)
-                    #and x.strip().startswith('.'))
-                )
-                for selector in selectors:
-                    # if not re.match('\.[A-Z_-]', selector, re.I):
-                    #     continue
-                    self.rules[selector] = bulk
-            elif hasattr(rule,'parentRule'):
-                pRule = rule.parentRule
-                if pRule:
-                    bulk = ';'.join(
-                        u'{0}:{1}'.format(key, pRule.style[key])
-                        for key in pRule.style.keys()
-                    )
-                    selectors = (
-                        x.strip()
-                        for x in pRule.selectorText.split(',')
-                        if x.strip() and (x.strip().indexOf("lst") < 0)
-                        # and x.strip().startswith('.')
-                    )
-                    for selector in selectors:
-                        # if not re.match('\.[A-Z_-]', selector, re.I):
-                        #     continue
-                        self.rules[selector] = bulk
-        # showText(unicode(self.rules))
+            bulk = ';'.join(
+                u'{0}:{1}'.format(key, rule.style[key])
+                for key in rule.style.keys()
+            )
+            selectors = (
+                x.strip()
+                for x in rule.selectorText.split(',')
+                if x.strip() and x.strip().startswith('.')
+            )
+            for selector in selectors:
+                if not re.match('\.[A-Z_-]', selector, re.I):
+                    continue
+                self.rules[selector] = bulk
+
     def transform(self, pretty_print=True, **kwargs):
         """change the self.html and return it with CSS turned into style
         attributes.
@@ -222,27 +195,7 @@ class ClaSS2Style(object):
             for stylefile in self.external_styles:
                 css_body = self._load_external(stylefile)
                 self._parse_style_rules(css_body)
-
-        ## styles from element selectors, runs before class selectors
-        for elem in page.xpath('//*'):
-            if elem.tag in self.rules:
-                old_style = elem.attrib.get('style', '')
-                new_style = self.rules[elem.tag]
-                if old_style:
-                    #replace any old property values with new property value
-                    old_cleaned_style=''
-                    
-                    for property in old_style.split(';'):
-                        if len(property.split(':')) != 2:
-                            continue
-                        else:
-                            property_name, property_val = property.split(':')
-                            if new_style.find(property_name) < 0:
-                                old_cleaned_style += property + ';'
-                    new_style = '; '.join([old_cleaned_style, new_style])
-                elem.attrib['style'] = new_style
-
-        ## styles from class selectors 
+        
         for tag_classes in page.xpath('//@class'):
             tag = tag_classes.getparent()
             tag_classes = ['.'+c.strip() for c in tag_classes.split(' ') if c.strip()]
@@ -251,20 +204,8 @@ class ClaSS2Style(object):
                     old_style = tag.attrib.get('style', '')
                     new_style = self.rules[tag_class]
                     if old_style:
-                        #replace any old property values with new property value
-                        old_cleaned_style=''
-                        
-                        for property in old_style.split(';'):
-                            if len(property.split(':')) != 2:
-                                continue
-                            else:
-                                property_name, property_val = property.split(':')
-                                if new_style.find(property_name) < 0:
-                                    old_cleaned_style += property + ';'
-                        new_style = '; '.join([old_cleaned_style, new_style])
+                        new_style = '; '.join([old_style, new_style])
                     tag.attrib['style'] = new_style
-
-
 
         if self.remove_classes:
             # now we can delete all 'class' attributes
