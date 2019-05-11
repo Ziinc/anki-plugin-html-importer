@@ -43,3 +43,9 @@ pipenv install my_addon_name
 # 2. Freeze to vendor folder
 pipenv run pip freeze | sed 's/-e //'> requirements.txt && pipenv run pip install -t vendor -r requirements.txt --upgrade
 ```
+
+To copy to the anki addons folder:
+
+```
+rm -rf ~/.local/share/Anki2/addons21/html_importer-testing && cp -a ./. ~/.local/share/Anki2/addons21/html_importer-testing
+```
