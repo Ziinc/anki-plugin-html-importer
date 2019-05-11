@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import csv
 from BeautifulSoup import BeautifulSoup
 
@@ -12,7 +12,7 @@ from aqt.utils import showText
 from anki.importing import TextImporter
 from anki.media import MediaManager
 import tempfile
-import urlparse
+import urllib.parse
 import string
 
 
@@ -59,12 +59,12 @@ def write_img_to_media_col(output, doc_url):
     # showText(str(re.findall(pattern, output)))
     for img_url in re.findall(pattern, output):
 
-        doc_path = urlparse.urlparse(doc_url).path
+        doc_path = urllib.parse.urlparse(doc_url).path
         to_rep = ['document', 'pub', 'd/e']
         for ch in to_rep:
             doc_path = doc_path.replace(ch, "")
 
-        im_parse = urlparse.urlparse(img_url)
+        im_parse = urllib.parse.urlparse(img_url)
         im_name = im_parse.path + im_parse.params + im_parse.query + im_parse.fragment
 
         im_name = im_name.replace(
@@ -95,7 +95,7 @@ def write_img_to_media_col(output, doc_url):
         # img_url = urllib.quote(img_url)
         img_src = img_url.replace('&amp;', '&')
         if not os.path.isfile(img_path):
-            urllib.urlretrieve(img_src, img_path)
+            urllib.request.urlretrieve(img_src, img_path)
             # resource = urllib.urlopen(img_url)
             # content = open(img_path,"wb")
             # content.write(resource.read())
@@ -239,7 +239,7 @@ def import_data():
     mw.checkpoint(_("Importing..."))
     txt = ''
     url = GOOGLE_SHEETS_URL
-    response = urllib2.urlopen(url)
+    response = urllib.request.urlopen(url)
     data = csv.reader(response)
 
     for entry in data:
@@ -251,14 +251,14 @@ def import_data():
         # Update progress
         mw.checkpoint(_("Importing " + str(deck_name)))
 
-        request = urllib2.urlopen(doc_url)
+        request = urllib.request.urlopen(doc_url)
         soup = BeautifulSoup(request)
         # remove scripts
         for script in soup.findAll('script'):
             script.extract()
         # showText(unicode(soup))
         # inline_unicode_html = pynliner.fromString(str(soup))
-        inline_html = ClaSS2Style(unicode(soup)).transform()
+        inline_html = ClaSS2Style(str(soup)).transform()
 
         # #replace undesirable style that hides bullet points
         # undesirable = "list-style-type:none"
