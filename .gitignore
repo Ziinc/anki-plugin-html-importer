@@ -1,2 +1,3 @@
 .pytest*
 requirements.txt
+__pycache__/
