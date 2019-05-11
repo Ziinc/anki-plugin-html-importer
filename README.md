@@ -32,20 +32,14 @@ _If you are an end user of this plugin, you can stop reading here now._
 
 All dependencies are vendored to the `/vendor` folder. This is a requirement for Anki addons.
 
-To install a new dependency:
+In development, it is recommended to use Pipenv to manage dependencies.
 
-```
-pip install -t vendor my_addon_name
-```
+To install a new dependency (with Pipenv):
 
-To install all dependencies:
+```bash
+# 1. Install to pipenv
+pipenv install my_addon_name
 
-```
-pip install -t vendor -r requirements.txt
-```
-
-To upgrade a dependency:
-
-```
-pip upgrade -t vendor my_addon_name
+# 2. Freeze to vendor folder
+pipenv run pip freeze | sed 's/-e //'> requirements.txt && pipenv run pip install -t vendor -r requirements.txt --upgrade
 ```

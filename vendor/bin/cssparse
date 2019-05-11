@@ -1,4 +1,4 @@
-#!/home/ziinc/anaconda3/bin/python
+#!/home/ziinc/.local/share/virtualenvs/anki-plugin-html-importer-etGQUFss/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
