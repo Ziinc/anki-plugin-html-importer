@@ -4,10 +4,13 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pytest = "*"
+pytest-xdist = "*"
 
 [packages]
 beautifulsoup4 = "==4.7.1"
 class2style = {editable = true,git = "https://github.com/arski/ClaSS2Style.git",ref = "c19d771aac3d13d7ed23eeba27f27dacf9e1fcf8"}
+requests = "*"
 
 [requires]
 python_version = "3.6"
